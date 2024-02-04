@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 import streamlit as st
 from langchain.chains import LLMChain
-from langchain.llms import VertexAI
+from langchain.llms import OpenAI
 from langchain.memory import ConversationBufferMemory
 from langchain.prompts import PromptTemplate
 
@@ -14,28 +14,36 @@ class Message:
 
 
 @st.cache_resource
-def get_llm() -> VertexAI:
-    return VertexAI(model_name="text-bison@001")
+def get_llm() -> OpenAI:
+    return OpenAI()
 
 
 def get_llm_chain():
-    template = """You are a nice chatbot having a conversation with a human.
+    template = """Answer the question based on the context below and use the history of the conversation to continue
+                If the question cannot be answered using the information provided answer with "I don't know"
+                              
+                Context:
+                You are deeply knowledgeable about all the National Parks in the United states and you want to 
+                suggest the parks to visit based on the question.
+                              
+                History of the conversation:
+                {chat_history}
+                
+                Question: 
+                {question}
 
-    Previous conversation:
-    {chat_history}
-
-    New human question: {question}
-    Response:"""
+                Answer: 
+    """
     prompt_template = PromptTemplate.from_template(template)
     # Notice that we need to align the `memory_key`
     memory = ConversationBufferMemory(memory_key="chat_history")
-    conversation = LLMChain(
+    chain = LLMChain(
         llm=get_llm(),
         prompt=prompt_template,
         verbose=True,
         memory=memory
     )
-    return conversation
+    return chain
 
 
 USER = "user"
@@ -45,7 +53,12 @@ MESSAGES = "messages"
 
 def initialize_session_state():
     if MESSAGES not in st.session_state:
-        st.session_state[MESSAGES] = [Message(actor=ASSISTANT, payload="Hi!How can I help you?")]
+        st.session_state[MESSAGES] = \
+            [Message(
+                actor=ASSISTANT,
+                payload="""Great to hear that you wish to visit a national park. 
+                You can ask me anything about what could be great places to visit
+                """)]
     if "llm_chain" not in st.session_state:
         st.session_state["llm_chain"] = get_llm_chain()
 

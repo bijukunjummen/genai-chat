@@ -6,15 +6,18 @@ Create a new virtual environment, and pull in the dependencies
 ```shell
 python3 -m venv ~/pythonenvs/streamlit-genai
 source ~/pythonenvs/streamlit-genai/bin/activate
-pip install -r requirements.txt
+pip install poetry
+
+poetry install
 ```
 
-### Connect to the right project in GCP
-
-The instructions are here - https://cloud.google.com/sdk/gcloud/reference/auth/application-default
+Set the OpenAI key:
+```sh
+export OPENAI_API_KEY=<mykey>
+```
 
 ### Start the application
 
 ```sh
-streamlit run app.py
+poetry run streamlit run app.py
 ```
